@@ -10,7 +10,16 @@ const morgan = require("morgan");
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://stupendous-croissant-ed072e.netlify.app/",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("tiny"));
