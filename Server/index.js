@@ -9,10 +9,13 @@ const morgan = require("morgan");
 // Initialize Express app
 const app = express();
 
+
+https://stupendous-croissant-ed072e.netlify.app/auth/login
+
 // Middleware
 app.use(
   cors({
-    origin: "https://stupendous-croissant-ed072e.netlify.app/",
+    origin: "https://stupendous-croissant-ed072e.netlify.app",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     preflightContinue: false,
     optionsSuccessStatus: 204,
