@@ -15,11 +15,11 @@ https://stupendous-croissant-ed072e.netlify.app/auth/login
 // Middleware
 app.use(
   cors({
-    origin: "https://stupendous-croissant-ed072e.netlify.app",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    credentials: true,
+      origin: ['http://localhost:3000', 'https://stupendous-croissant-ed072e.netlify.app'],
+   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+   preflightContinue: false,
+   optionsSuccessStatus: 204,
+   credentials: true,
   })
 );
 
@@ -27,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("tiny"));
 
-// Database Connection
+// Database Connection  
 mongoose
   .connect(process.env.dbUrl)
   .then(() => console.log(" DB connected"))
