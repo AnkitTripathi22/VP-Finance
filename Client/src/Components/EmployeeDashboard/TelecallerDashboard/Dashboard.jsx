@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { getAllSuspects } from "../../../redux/feature/SuspectRedux/SuspectThunx";
 
 import { useLocation } from "react-router-dom";
+import axiosInstance from "../../../config/axios";
 
 const DashboardPage = () => {
   const location = useLocation();
@@ -61,21 +62,20 @@ const DashboardPage = () => {
     setAssignedError(null);
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/telecaller/${telecallerId}/assigned-suspects`
+      const response = await axiosInstance.get(
+        `/api/telecaller/${telecallerId}/assigned-suspects`
       );
-      const result = await response.json();
 
-      if (response.ok && result.success) {
-        const sortedData = (result.data.assignedSuspects || []).sort(
+      if (response.data && response.data.success) {
+        const sortedData = (response.data.data.assignedSuspects || []).sort(
           (a, b) => new Date(b.assignedAt) - new Date(a.assignedAt)
         );
         setAssignedSuspects(sortedData);
       } else {
-        setAssignedError(result.message || "Failed to fetch assigned suspects");
+        setAssignedError(response.data.message || "Failed to fetch assigned suspects");
       }
     } catch (error) {
-      setAssignedError("Network error. Please try again.");
+      setAssignedError(error.response?.data?.message || "Network error. Please try again.");
     } finally {
       setAssignedLoading(false);
     }
@@ -86,97 +86,52 @@ const DashboardPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-const updateStatus = async (suspectId, actionType) => {
-  const { nextCallDate, time, remark, status } = formData;
+  const updateStatus = async (suspectId, actionType) => {
+    const { nextCallDate, time, remark, status } = formData;
 
-  try {
-    let endpoint = "";
-    let body = {};
+    try {
+      const endpoint = `/api/suspect/${suspectId}/call-task`;
+      let body = {};
 
-    if (actionType === "forward") {
-      endpoint = `http://localhost:8080/api/suspect/${suspectId}/call-task`; // Use the call-task endpoint
-      body = {
-        taskDate: nextCallDate, // Match the field name from handleSubmit2
-        taskTime: time,        // Match the field name from handleSubmit2
-        taskRemarks: remark,   // Match the field name from handleSubmit2
-        taskStatus: status , // Default status for forward action
-      };
-      const response = await fetch(endpoint, {
-        method: "POST", // Use POST as in handleSubmit2
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          alert("Forward successful");
-          fetchAssignedSuspects(); // Refresh the list
-          setActionPanel(null);
-          setFormData({ status: "", nextCallDate: "", time: "", remark: "" });
-        } else {
-          console.error("Failed to forward call task:", data.message);
-          setAssignedError(`Failed to forward: ${data.message || "Unknown error"}`);
-        }
-      } else {
-        const errorText = await response.text();
-        console.error("HTTP error:", errorText);
-        setAssignedError(`HTTP error: ${errorText || "Failed to connect to server"}`);
+      if (actionType === "forward") {
+        body = {
+          taskDate: nextCallDate,
+          taskTime: time,
+          taskRemarks: remark,
+          taskStatus: status,
+        };
+      } else if (actionType === "close") {
+        body = {
+          taskDate: new Date().toISOString().split("T")[0],
+          taskTime: new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" }),
+          taskRemarks: remark,
+          taskStatus: status,
+        };
+      } else if (actionType === "callback") {
+        body = {
+          taskDate: new Date().toISOString().split("T")[0],
+          taskTime: new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" }),
+          taskRemarks: remark,
+          taskStatus: "Callback",
+        };
       }
-    } else if (actionType === "close") {
-      endpoint = `http://localhost:8080/api/suspect/${suspectId}/call-task`;
-      body = {
-        taskDate: new Date().toISOString().split('T')[0], // Match the field name from handleSubmit2
-        taskTime: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),        // Match the field name from handleSubmit2
-        taskRemarks: remark,   // Match the field name from handleSubmit2
-        taskStatus: status , // Default status for forward action
-      };
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
 
-      const result = await response.json();
+      const response = await axiosInstance.post(endpoint, body);
 
-      if (response.ok) {
-        alert("Close successful");
+      if (response.data.success) {
+        alert(`${actionType.charAt(0).toUpperCase() + actionType.slice(1)} successful`);
         fetchAssignedSuspects(); // Refresh the list
         setActionPanel(null);
         setFormData({ status: "", nextCallDate: "", time: "", remark: "" });
       } else {
-        setAssignedError(result.message || `Failed to close suspect`);
+        throw new Error(response.data.message || `Failed to ${actionType}`);
       }
-    } else if (actionType === "callback") {
-      endpoint = `http://localhost:8080/api/suspect/${suspectId}/call-task`;
-     body = {
-        taskDate: new Date().toISOString().split('T')[0], // Match the field name from handleSubmit2
-        taskTime: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),        // Match the field name from handleSubmit2
-        taskRemarks: remark,   // Match the field name from handleSubmit2
-        taskStatus: "Callback" , // Default status for forward action
-      };
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert("Callback successful");
-        fetchAssignedSuspects(); // Refresh the list
-        setActionPanel(null);
-        setFormData({ status: "", nextCallDate: "", time: "", remark: "" });
-      } else {
-        setAssignedError(result.message || `Failed to set callback`);
-      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || "Network error. Please try again.";
+      console.error(`Error in ${actionType} action:`, errorMessage);
+      setAssignedError(errorMessage);
     }
-  } catch (error) {
-    console.error(`Error in ${actionType} action:`, error);
-    setAssignedError("Network error. Please try again.");
-  }
-}; 
+  }; 
 
   const handleSubmit = () => {
     if (actionPanel?.suspect?._id && actionPanel.type) {

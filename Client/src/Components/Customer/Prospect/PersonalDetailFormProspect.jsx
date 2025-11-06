@@ -106,7 +106,7 @@
 
 //   const fetchAreaData = async (pincode) => {
 //     try {
-//       const response = await fetch(`http://localhost:8080/api/leadarea?pincode=${pincode}`);
+//       const response = await fetch(`/api/leadarea?pincode=${pincode}`);
 //       const data = await response.json();
 //       console.log("API Response:", data);
 
@@ -801,6 +801,7 @@ import { createClient, updateClientPersonalDetails } from "../../../redux/featur
 import { getAllOccupations } from "../../../redux/feature/LeadOccupation/OccupationThunx";
 import { getAllOccupationTypes } from "../../../redux/feature/OccupationType/OccupationThunx";
 import { toast } from "react-toastify";
+import axiosInstance from "/src/config/axios";
 import { fetchLeadType } from "../../../redux/feature/LeadType/LeadTypeThunx";
 // import { fetchDetailss } from "../../../redux/feature/LeadSource/LeadThunx"
 
@@ -905,12 +906,11 @@ const handleMobileWhatsappChange = (e) => {
 useEffect(() => {
     const fetchOccupations = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/occupation");
-        const result = await response.json();
-        if (result.success) {
-          setOccupations(result.data); // API se aaya data store karo
+        const response = await axiosInstance.get("/api/occupation");
+        if (response.data.success) {
+          setOccupations(response.data.data); // API se aaya data store karo
         } else {
-          console.error("Failed to fetch occupations:", result.message);
+          console.error("Failed to fetch occupations:", response.data.message);
         }
       } catch (error) {
         console.error("Error fetching occupations:", error);
@@ -924,12 +924,11 @@ useEffect(() => {
   useEffect(() => {
     const fetchOccupationTypes = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/occupation/types");
-        const result = await response.json();
-        if (result.success) {
-          setOccupationTypes(result.data); // API se aaya data store karo
+        const response = await axiosInstance.get("/api/occupation/types");
+        if (response.data.success) {
+          setOccupationTypes(response.data.data); // API se aaya data store karo
         } else {
-          console.error("Failed to fetch occupation types:", result.message);
+          console.error("Failed to fetch occupation types:", response.data.message);
         }
       } catch (error) {
         console.error("Error fetching occupation types:", error);
@@ -961,8 +960,8 @@ useEffect(() => {
 
   const fetchAreaData = async (pincode) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/leadarea?pincode=${pincode}`);
-      const data = await response.json();
+      const response = await axiosInstance.get(`/api/leadarea?pincode=${pincode}`);
+      const data = response.data;
       console.log("API Response:", data);
 
       if (data && Array.isArray(data)) {

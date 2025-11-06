@@ -485,6 +485,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllSuspects } from "../../redux/feature/SuspectRedux/SuspectThunx";
 import { toast } from "react-toastify";
+import axiosInstance from "/src/config/axios";
 
 const TaskAssign = () => {
   const [employees, setEmployees] = useState({
@@ -517,8 +518,8 @@ const TaskAssign = () => {
   useEffect(() => {
     const fetchTelecallers = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/telecaller/");
-        const data = await res.json();
+        const res = await axiosInstance.get("/api/telecaller/");
+        const data = res.data; // axios automatically parses JSON
 
         if (Array.isArray(data)) {
           setEmployees(prev => ({
@@ -542,8 +543,8 @@ const TaskAssign = () => {
   const refreshAssignments = async () => {
     try {
       setLoadingAssignments(true);
-      const response = await fetch("http://localhost:8080/api/telecaller/assignments");
-      const result = await response.json();
+      const response = await axiosInstance.get("/api/telecaller/assignments");
+      const result = response.data; // axios automatically parses JSON
 
       if (response.ok && result.success) {
         const newAssignedMap = {};
@@ -658,19 +659,15 @@ const TaskAssign = () => {
     setIsAssigning(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/telecaller/assign-suspects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          role,
-          selectedPerson,
-          suspects: selectedSuspects
-        })
-      });
+    const response = await axiosInstance.post("/api/telecaller/assign-suspects", {
+      role: role,
+      selectedPerson: selectedPerson,
+      suspects: selectedSuspects,
+    });
 
-      const result = await response.json();
+      const result = response.data;
 
-      if (response.ok && result.success) {
+      if (result.success) {
         toast.success("Suspects assigned successfully!");
 
         // Update local assignment map with new assignments
@@ -964,7 +961,7 @@ const TaskAssign = () => {
         </div>
       )}
 
-      <style jsx>{`
+      <style jsx="true">{`
         .task-container {
           max-width: 100%;
           margin: 20px;

@@ -7,6 +7,7 @@ import { getAllOccupations } from "../../../redux/feature/LeadOccupation/Occupat
 import { getAllOccupationTypes } from "../../../redux/feature/OccupationType/OccupationThunx";
 import { fetchLeadType } from "../../../redux/feature/LeadType/LeadTypeThunx";
 import { toast } from "react-toastify";
+import axiosInstance from "/src/config/axios";
 
 const incomeOptions = [
   { value: "25 lakh to 1 Cr.", label: "25 lakh to 1 Cr." },
@@ -119,17 +120,12 @@ const AddSuspect = ({ isEdit, suspectData, onSuspectCreated }) => {
   const fetchCallHistory = async () => {
     if (!isEdit || !suspectData?._id) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/suspect/${suspectData._id}/call-history`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Call history: ",data)
-        setCallHistory(data.callHistory || []);
-      } else {
-        console.error("Failed to fetch call history:", await response.text());
-      }
+      const response = await axiosInstance.get(`/api/suspect/${suspectData._id}/call-history`);
+      console.log("Call history: ", response.data);
+      setCallHistory(response.data.callHistory || []);
     } catch (error) {
       console.error("Error fetching call history:", error);
-      toast.error("Failed to fetch call history. Please try again.");
+      toast.error(error.response?.data?.message || "Failed to fetch call history. Please try again.");
     }
   };
 
@@ -147,37 +143,24 @@ const AddSuspect = ({ isEdit, suspectData, onSuspectCreated }) => {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:8080/api/suspect/${suspectData._id}/call-task`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          taskDate: formData2.NextCallDate,
-          taskTime: formData2.Time,
-          taskRemarks: formData2.callRemarks,
-          taskStatus: formData2.callStatus,
-        }),
+      const response = await axiosInstance.post(`/api/suspect/${suspectData._id}/call-task`, {
+        taskDate: formData2.NextCallDate,
+        taskTime: formData2.Time,
+        taskRemarks: formData2.callRemarks,
+        taskStatus: formData2.callStatus,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          toast.success("Call task added successfully!");
-          fetchCallHistory();
-          setFormData2({ NextCallDate: "", callStatus: "", Time: "", callRemarks: "" });
-        } else {
-          console.error("Failed to add call task:", data.message);
-          toast.error(`Failed to add call task: ${data.message || "Unknown error"}`);
-        }
+      if (response.data.success) {
+        toast.success("Call task added successfully!");
+        fetchCallHistory();
+        setFormData2({ NextCallDate: "", callStatus: "", Time: "", callRemarks: "" });
       } else {
-        const errorText = await response.text();
-        console.error("HTTP error:", errorText);
-        toast.error(`HTTP error: ${errorText || "Failed to connect to server"}`);
+        console.error("Failed to add call task:", response.data.message);
+        toast.error(`Failed to add call task: ${response.data.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error adding call task:", error);
-      toast.error("Failed to add call task due to a network error. Please try again.");
+      toast.error(error.response?.data?.message || "Failed to add call task due to a network error. Please try again.");
     }
   };
 
@@ -205,12 +188,11 @@ const AddSuspect = ({ isEdit, suspectData, onSuspectCreated }) => {
   useEffect(() => {
     const fetchOccupations = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/occupation");
-        const result = await response.json();
-        if (result.success) {
-          setOccupations(result.data);
+        const response = await axiosInstance.get("/api/occupation");
+        if (response.data.success) {
+          setOccupations(response.data.data);
         } else {
-          console.error("Failed to fetch occupations:", result.message);
+          console.error("Failed to fetch occupations:", response.data.message);
         }
       } catch (error) {
         console.error("Error fetching occupations:", error);
@@ -222,12 +204,11 @@ const AddSuspect = ({ isEdit, suspectData, onSuspectCreated }) => {
   useEffect(() => {
     const fetchOccupationTypes = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/occupation/types");
-        const result = await response.json();
-        if (result.success) {
-          setOccupationTypes(result.data);
+        const response = await axiosInstance.get("/api/occupation/types");
+        if (response.data.success) {
+          setOccupationTypes(response.data.data);
         } else {
-          console.error("Failed to fetch occupation types:", result.message);
+          console.error("Failed to fetch occupation types:", response.data.message);
         }
       } catch (error) {
         console.error("Error fetching occupation types:", error);
@@ -259,8 +240,8 @@ const AddSuspect = ({ isEdit, suspectData, onSuspectCreated }) => {
 
   const fetchAreaData = async (pincode) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/leadarea?pincode=${pincode}`);
-      const data = await response.json();
+      const response = await axiosInstance.get(`/api/leadarea?pincode=${pincode}`);
+      const data = response.data;
       if (data && Array.isArray(data)) {
         const area = data.find((item) => String(item.pincode) === String(pincode));
         return area || { name: "Area not found", city: "" };
