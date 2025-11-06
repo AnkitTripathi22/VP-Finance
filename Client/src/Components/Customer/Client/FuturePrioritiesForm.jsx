@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import axiosInstance from "../../../config/axios";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import {
   addFuturePrioritiesAndNeeds,
@@ -63,13 +64,8 @@ const FuturePrioritiesForm = ({ clientId }) => {
     const fetchClientData = async () => {
       try {
         if (!clientId) return;
-        const response = await fetch(`http://localhost:8080/api/client/${clientId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        const result = await response.json();
+        const response = await axiosInstance.get(`/api/client/${clientId}`);
+        const result = response.data;
         if (result.success) {
              setFamilyMembers(result.client.familyMembers || []);
           setSavedFuturePriorityForms(result.client.futurePriorities || []);
@@ -80,7 +76,7 @@ const FuturePrioritiesForm = ({ clientId }) => {
         }
       } catch (error) {
         console.error("Error fetching client data:", error);
-        toast.error("Error loading client data. Check your network.");
+        toast.error(error.response?.data?.message || "Error loading client data. Check your network.");
       }
     };
 

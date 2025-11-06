@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useDispatch,useSelector } from "react-redux";
+import axiosInstance from "../../../config/axios";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import { addProposedFinancialPlan } from "../../../redux/feature/ClientRedux/ClientThunx";
 import { fetchCompanyName } from "../../../redux/feature/ComapnyName/CompanyThunx";
@@ -40,10 +41,9 @@ const ProposedPlanForm = ({ clientId, clientData }) => {
   useEffect(() => {
     const fetchClientData = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:8080/api/client/${clientId}`
-        );
-        const result = await response.json();
+        if (!clientId) return;
+        const response = await axiosInstance.get(`/api/client/${clientId}`);
+        const result = response.data;
         if (result.success) {
           setFamilyMembers(result.client.familyMembers || []);
         } else {

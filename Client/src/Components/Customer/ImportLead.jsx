@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from '../../config/axios'; // Using the configured axios instance
 
 const ImportLead = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "";
   const [formData, setFormData] = useState({
     // The form fields are not sent in the new implementation, but kept for UI
     callingPurpose: '',
@@ -64,7 +65,7 @@ const ImportLead = () => {
           </li>
         </ul>
         <a
-          href="http://localhost:8080/api/download-last-csv"
+          href={`${API_BASE_URL}/api/download-last-csv`}
           className="btn btn-success"
           target="_blank"
           rel="noopener noreferrer"

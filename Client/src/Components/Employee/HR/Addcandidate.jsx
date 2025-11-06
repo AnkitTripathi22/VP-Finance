@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Image } from "react-bootstrap";
+import axiosInstance from "../../../config/axios";
 
 function Addcandidate() {
   const [formData, setFormData] = useState({
@@ -38,14 +39,14 @@ function Addcandidate() {
     });
 
     try {
-      const res = await fetch("http://localhost:8080/api/addcandidate/add", {
-        method: "POST",
-        body: data,
+      const res = await axiosInstance.post(`/api/addcandidate/add`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
-      if (res.ok) {
-        const result = await res.json();
-        console.log("✅ Candidate Added:", result);
+      if (res.data) {
+        console.log("✅ Candidate Added:", res.data);
         alert("Candidate Added Successfully!");
         setFormData({
           name: "",
@@ -63,12 +64,10 @@ function Addcandidate() {
         });
         setPreview(null);
         setError(null);
-      } else {
-        throw new Error(`Failed to add candidate. Status: ${res.status}`);
       }
     } catch (error) {
       console.error("❌ API Error:", error);
-      setError("Error connecting to server. Please try again.");
+      setError(error.response?.data?.message || "Error connecting to server. Please try again.");
     }
   };
 

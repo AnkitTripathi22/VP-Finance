@@ -40,6 +40,7 @@ import { toast } from "react-toastify";
 import { Link } from "react-bootstrap-icons";
 
 const CustomerDetail = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "";
   const [tabIndex, setTabIndex] = useState(0);
   const [checklists, setChecklists] = useState([{ name: "", file: null }]);
   const [textChecklists, setTextChecklists] = useState([""]);
@@ -349,7 +350,7 @@ const CustomerDetail = () => {
     <img
       src={
         userData?.personalDetails?.profilepic
-          ? `http://localhost:8080${userData.personalDetails.profilepic}`
+          ? `${API_BASE_URL}${userData.personalDetails.profilepic}`
           : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQf1fiSQO7JfDw0uv1Ae_Ye-Bo9nhGNg27dwg&s"
       }
       alt="Profile"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Image, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import axiosInstance from '../../../config/axios';
 function VacancyNotice() {
   const [formData, setFormData] = useState({
     vacancy: '',
@@ -27,9 +27,8 @@ function VacancyNotice() {
 
 const fetchVacancies = async () => {
   try {
-    const response = await fetch('http://localhost:8080/api/vacancynotice/');
-    if (!response.ok) throw new Error('Failed to fetch vacancies');
-    const data = await response.json();
+    const response = await axiosInstance.get('/api/vacancynotice/');
+    const data = response.data;
     const normalizedData = data.map((item) => ({
       ...item,
       date: new Date(item.date).toISOString().split('T')[0], // Normalize to YYYY-MM-DD
@@ -38,7 +37,7 @@ const fetchVacancies = async () => {
     setVacancies(normalizedData);
   } catch (error) {
     console.error('Error fetching vacancies:', error);
-    setError('Failed to fetch vacancies. Please try again.');
+    setError(error.response?.data?.message || 'Failed to fetch vacancies. Please try again.');
   }
 };
 
@@ -69,11 +68,11 @@ const fetchVacancies = async () => {
     formDataObj.append('platform', formData.platform);
     if (formData.file) formDataObj.append('file', formData.file);
 
-    const response = await fetch('http://localhost:8080/api/vacancynotice/', {
-      method: 'POST',
-      body: formDataObj,
+    await axiosInstance.post('/api/vacancynotice/', formDataObj, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
-    if (!response.ok) throw new Error('Failed to submit vacancy');
     fetchVacancies();
     setFormData({
       vacancy: '',
@@ -85,7 +84,7 @@ const fetchVacancies = async () => {
     setError(null);
   } catch (error) {
     console.error('Error submitting form:', error);
-    setError('Failed to submit vacancy. Please try again.');
+    setError(error.response?.data?.message || 'Failed to submit vacancy. Please try again.');
   }
 };
 
@@ -104,7 +103,7 @@ const filteredVacancies = vacancies.filter((vacancy) => {
   const handlePreviewClick = (fileUrl) => {
     const fullUrl = fileUrl.startsWith('http')
       ? fileUrl
-      : `http://localhost:8080${fileUrl}`;
+      : fileUrl;
     fetch(fullUrl, { method: 'HEAD' })
       .then((response) => {
         if (response.ok) {
@@ -150,17 +149,11 @@ const filteredVacancies = vacancies.filter((vacancy) => {
     if (!window.confirm('Are you sure you want to delete this vacancy?')) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/vacancynotice/${id}`,
-        {
-          method: 'DELETE',
-        }
-      );
-      if (!response.ok) throw new Error('Failed to delete vacancy');
+      await axiosInstance.delete(`/api/vacancynotice/${id}`);
       fetchVacancies(); // Refresh list
     } catch (error) {
       console.error('Error deleting vacancy:', error);
-      setError('Failed to delete vacancy. Please try again.');
+      setError(error.response?.data?.message || 'Failed to delete vacancy. Please try again.');
     }
   };
 

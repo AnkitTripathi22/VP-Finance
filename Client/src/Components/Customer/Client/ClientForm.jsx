@@ -1,5 +1,7 @@
 // ClientForm.js (Parent)
 import React, { useState, useEffect } from "react";
+import axiosInstance from "../../../config/axios";
+import { toast } from "react-toastify";
 import { Tab, Tabs } from "react-bootstrap";
 import PersonalDetailsForm from "./PersonalDetailsForm";
 import FamilyMembersForm from "./FamilyMembersForm";
@@ -21,13 +23,12 @@ const ClientForm = () => {
     
     // ✅ Client data fetch karke globalFormData me store karo
     try {
-      const response = await fetch(`http://localhost:8080/api/client/${clientId}`);
-      const result = await response.json();
+      const response = await axiosInstance.get(`/api/client/${clientId}`);
       
-      if (result.success && result.data) {
+      if (response.data.success && response.data.data) {
         setGlobalFormData(prev => ({
           ...prev,
-          personalDetails: { ...prev.personalDetails, ...result.data.personalDetails },
+          personalDetails: { ...prev.personalDetails, ...response.data.data.personalDetails },
           // family details bhi pre-load kar sakte ho agar available ho
         }));
         
@@ -35,6 +36,7 @@ const ClientForm = () => {
       }
     } catch (error) {
       console.error("Error loading client data:", error);
+      toast.error(error.response?.data?.message || "Failed to load client data.");
     }
   };
 

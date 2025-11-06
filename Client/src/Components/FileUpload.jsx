@@ -56,7 +56,7 @@
 
 // FileUpload.js
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../config/axios";
 
 const FileUpload = ({ onUpload }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -78,8 +78,8 @@ const FileUpload = ({ onUpload }) => {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:8080/api/uploads",
+      const res = await axiosInstance.post(
+        "/api/uploads",
         // "https://dela.systemmanager.in",
         formData,
         {

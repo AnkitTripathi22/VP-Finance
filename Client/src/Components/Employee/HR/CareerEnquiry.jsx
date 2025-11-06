@@ -12,7 +12,7 @@ function CareerEnquiry() {
 
   const fetchCandidates = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/addcandidate/all");
+      const res = await fetch("/api/addcandidate/all");
       if (!res.ok) throw new Error('Failed to fetch candidates');
       const data = await res.json();
       console.log('Raw candidates data:', data); // Debug log
@@ -28,7 +28,7 @@ function CareerEnquiry() {
   const deleteCandidate = async (id) => {
     if (window.confirm("Are you sure you want to delete this candidate?")) {
       try {
-        const res = await fetch(`http://localhost:8080/api/addcandidate/${id}`, {
+        const res = await fetch(`/api/addcandidate/${id}`, {
           method: "DELETE",
         });
         if (!res.ok) throw new Error('Failed to delete candidate');
@@ -42,7 +42,7 @@ function CareerEnquiry() {
 
   const handlePreview = (resumeUrl) => {
     console.log('Raw resumeUrl:', resumeUrl);
-    const fullUrl = resumeUrl.startsWith('http') ? resumeUrl : `http://localhost:8080${resumeUrl}`;
+    const fullUrl = resumeUrl.startsWith('http') ? resumeUrl : `${resumeUrl}`;
     console.log('Constructed fullUrl:', fullUrl);
     fetch(fullUrl, { method: 'HEAD' })
       .then((response) => {
@@ -83,7 +83,7 @@ function CareerEnquiry() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/addcandidate/${id}/status`, {
+      const res = await fetch(`/api/addcandidate/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

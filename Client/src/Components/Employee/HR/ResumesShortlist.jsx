@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal, Image } from "react-bootstrap";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import axiosInstance from "../../../config/axios";
 
 function ResumesShortlist() {
   const [candidates, setCandidates] = useState([]);
@@ -12,14 +13,12 @@ function ResumesShortlist() {
 
   const fetchCandidates = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/addcandidate/all");
-      if (!res.ok) throw new Error('Failed to fetch candidates');
-      const data = await res.json();
-      setCandidates(data);
+      const res = await axiosInstance.get("/api/addcandidate/all");
+      setCandidates(res.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching candidates:", error);
-      setError('Failed to fetch candidates. Please try again.');
+      setError(error.response?.data?.message || 'Failed to fetch candidates. Please try again.');
       setLoading(false);
     }
   };
@@ -27,14 +26,11 @@ function ResumesShortlist() {
   const deleteCandidate = async (id) => {
     if (window.confirm("Are you sure you want to delete this candidate?")) {
       try {
-        const res = await fetch(`http://localhost:8080/api/addcandidate/${id}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) throw new Error('Failed to delete candidate');
+        await axiosInstance.delete(`/api/addcandidate/${id}`);
         setCandidates(candidates.filter((candidate) => candidate._id !== id));
       } catch (error) {
         console.error("Error deleting candidate:", error);
-        alert("Failed to delete candidate. Please try again.");
+        alert(error.response?.data?.message || "Failed to delete candidate. Please try again.");
       }
     }
   };
@@ -82,19 +78,14 @@ function ResumesShortlist() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/addcandidate/${id}/status`, { // Updated endpoint
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (!res.ok) throw new Error('Failed to update status');
-      const updatedCandidate = await res.json();
+      const res = await axiosInstance.put(`/api/addcandidate/${id}/status`, { status: newStatus });
+      const updatedCandidate = res.data;
       setCandidates(candidates.map(candidate =>
         candidate._id === id ? updatedCandidate.candidate : candidate // Adjust based on response structure
       ));
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Failed to update status. Please try again.");
+      alert(error.response?.data?.message || "Failed to update status. Please try again.");
     }
   };
 
